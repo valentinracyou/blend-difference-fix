@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rasterizado del texto y mix-blend-mode: difference</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!--
+  Todos los elementos de esta página son hermanos directos de <body>.
+  No hay ningún wrapper: cualquier ancestro con z-index, transform, opacity,
+  filter, will-change, isolation o position: fixed/sticky crearía un stacking
+  context y el blend dejaría de componer contra la imagen.
+  El position: sticky va en el párrafo mismo, que es también el que lleva el blend.
+-->
+
+<p class="intro">Los tres párrafos tienen el mismo texto, la misma tipografía, el mismo tamaño y el
+mismo peso. Lo único que cambia es el CSS con el que se pintan. Scrolleá: los párrafos quedan
+fijos y la imagen pasa por debajo.</p>
+
+<h2 class="section-title" id="screenshots">Screenshots de Chrome en Windows 11:</h2>
+
+<div class="shots">
+  <a class="shot" href="#shot-1"><img src="shot-1.png" alt="Los tres párrafos sobre fondo blanco"></a>
+  <a class="shot" href="#shot-2"><img src="shot-2.png" alt="Los tres párrafos sobre la imagen"></a>
+  <a class="shot" href="#shot-3"><img src="shot-3.png" alt="Los tres párrafos con el texto seleccionado"></a>
+</div>
+
+<div class="label" id="label-a">
+  <span class="label-name">Referencia</span>
+  <pre>color: <span class="swatch sw-black"></span>#000;</pre>
+</div>
+<p class="specimen case-a">El rasterizador no dibuja el mismo glifo para cualquier color: ajusta la máscara
+de cobertura según el contraste con el fondo. Por eso el mismo párrafo, con la misma fuente y el
+mismo peso, puede terminar más grueso o más fino según con qué color se lo pinte antes de que el
+modo de fusión lo invierta al color final.</p>
+
+<div class="label" id="label-b">
+  <span class="label-name">Esquema habitual</span>
+  <pre>color: <span class="swatch sw-white"></span>#fff; mix-blend-mode: difference;</pre>
+</div>
+<p class="specimen case-b">El rasterizador no dibuja el mismo glifo para cualquier color: ajusta la máscara
+de cobertura según el contraste con el fondo. Por eso el mismo párrafo, con la misma fuente y el
+mismo peso, puede terminar más grueso o más fino según con qué color se lo pinte antes de que el
+modo de fusión lo invierta al color final.</p>
+
+<div class="label" id="label-c">
+  <span class="label-name">Propuesta</span>
+  <pre>color: <span class="swatch sw-black"></span>#000; filter: invert(1); mix-blend-mode: difference;</pre>
+</div>
+<p class="specimen case-c">El rasterizador no dibuja el mismo glifo para cualquier color: ajusta la máscara
+de cobertura según el contraste con el fondo. Por eso el mismo párrafo, con la misma fuente y el
+mismo peso, puede terminar más grueso o más fino según con qué color se lo pinte antes de que el
+modo de fusión lo invierta al color final.</p>
+
+<div class="gap"></div>
+
+<img class="backdrop" src="img.jpeg" alt="">
+
+<div class="tail"></div>
+
+<!-- Lightbox sin JS, con :target. Van al final del <body> y con z-index propio
+     para pintarse por encima de los párrafos: así nunca entran en su backdrop
+     y el blend no los ve. Son hermanos, no ancestros, así que el position:
+     fixed no aísla nada. -->
+<div class="lightbox" id="shot-1">
+  <a class="lightbox-backdrop" href="#screenshots" aria-label="Cerrar"></a>
+  <img src="shot-1.png" alt="Los tres párrafos sobre fondo blanco">
+  <a class="lightbox-close" href="#screenshots">cerrar</a>
+</div>
+
+<div class="lightbox" id="shot-2">
+  <a class="lightbox-backdrop" href="#screenshots" aria-label="Cerrar"></a>
+  <img src="shot-2.png" alt="Los tres párrafos sobre la imagen">
+  <a class="lightbox-close" href="#screenshots">cerrar</a>
+</div>
+
+<div class="lightbox" id="shot-3">
+  <a class="lightbox-backdrop" href="#screenshots" aria-label="Cerrar"></a>
+  <img src="shot-3.png" alt="Los tres párrafos con el texto seleccionado">
+  <a class="lightbox-close" href="#screenshots">cerrar</a>
+</div>
+
+</body>
+</html>

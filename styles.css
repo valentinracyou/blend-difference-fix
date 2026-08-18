@@ -1,0 +1,271 @@
+/* ------------------------------------------------------------------
+   Demo: cómo se rasteriza el texto con mix-blend-mode: difference
+   según el color con el que se pinta.
+
+   Regla estructural: NINGÚN ancestro de los párrafos puede crear un
+   stacking context (z-index, transform, opacity < 1, filter,
+   will-change, isolation, position: fixed/sticky). Por eso todo cuelga
+   directo de <body> y el sticky vive en el párrafo mismo.
+   ------------------------------------------------------------------ */
+
+/* Tipografía servida desde el repo. El descriptor font-weight sólo declara
+   qué contiene el archivo; no se toca el font-weight de ningún elemento. */
+@font-face {
+  font-family: "Univers LT Pro 55";
+  src: url("UniversLTStd.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Margen izquierdo de la columna de casos y de la explicación. */
+  --gutter: 32px;
+
+  /* Medida de lectura, compartida por rótulos y párrafos (65ch a 18px). */
+  --measure: min(650px, calc(100vw - 2 * var(--gutter)));
+
+  --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+
+  /* Geometría del apilado sticky. --pitch es la distancia vertical entre
+     el inicio de un caso y el siguiente, y coincide con el ritmo del flujo
+     normal para que los bloques no se solapen al fijarse. */
+  --pad-top: 24px;
+  --label-h: 41px;   /* alto del rótulo + su separación del párrafo */
+  --pitch: 175px;    /* rótulo + párrafo + separación entre casos */
+}
+
+html {
+  background: #fff;   /* el backdrop del blend: fondo del canvas */
+}
+
+body {
+  margin: 0;
+  color: #000;
+  font-family: "Univers LT Pro 55", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ---------- Texto explicativo ----------
+   En flujo, arriba de los tres casos. Mismos estilos que el <pre> de un rótulo. */
+
+.intro {
+  width: var(--measure);
+  margin: 40px var(--gutter) 44px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.4;
+  color: #f00;
+}
+
+/* ---------- Screenshots ----------
+   Miniaturas en flujo, arriba de los tres casos. Quedan por encima del punto
+   donde los párrafos se fijan, así que nunca se solapan con ellos. */
+
+.section-title {
+  width: var(--measure);
+  margin: 0 var(--gutter) 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: #f00;
+}
+
+.shots {
+  display: flex;
+  gap: 12px;
+  width: var(--measure);
+  margin: 0 var(--gutter) 44px;
+}
+
+.shot {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #f00;
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Lightbox con :target, sin JS. El z-index lo deja siempre por encima de los
+   párrafos, fuera de su backdrop. */
+
+.lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: rgba(0, 0, 0, 0.92);
+}
+
+.lightbox:target {
+  display: flex;
+}
+
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.lightbox img {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid #f00;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #f00;
+}
+
+/* ---------- Rótulos ----------
+   Hermanos de los párrafos, nunca hijos: el filter: invert(1) del caso C
+   invertiría el rojo y el difference del caso B lo alteraría.
+   Sin blend y sin filter. Sticky para que acompañen a su párrafo. */
+
+.label {
+  position: sticky;
+  width: var(--measure);
+  margin: 0 auto 0 var(--gutter);
+  color: #f00;
+}
+
+.label-name {
+  display: block;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.label pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  color: #f00;
+}
+
+/* Cuadradito con el color de pintado, antes del valor en el <pre>.
+   El borde rojo lo hace visible también cuando la muestra es blanca. */
+.swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #f00;
+  vertical-align: baseline;
+  margin-right: 3px;
+}
+
+.sw-black { background: #000; }
+.sw-white { background: #fff; }
+
+/* ---------- Los tres párrafos ----------
+   Mismo texto, misma tipografía, mismo tamaño, mismo peso.
+   No se declara font-weight, font-synthesis, text-rendering
+   ni ningún ajuste de suavizado. Lo único que cambia es el pintado. */
+
+.specimen {
+  position: sticky;
+  width: var(--measure);
+  margin: 4px auto 34px var(--gutter);
+  font-size: 18px;
+  line-height: 20px;
+}
+
+/* A. Referencia: pintado directo, sin blend. */
+.case-a {
+  color: #000;
+}
+
+/* B. Esquema habitual: se pinta blanco y difference lo lleva a negro. */
+.case-b {
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+/* C. Propuesta: se pinta en el color final y se invierte ya rasterizado.
+   El orden de la spec es filter -> blend -> composición, así que el píxel
+   final es idéntico al de B, pero el glifo se rasterizó como negro sobre
+   claro, igual que en A. El filter crea stacking context en el MISMO
+   elemento que lleva el blend: aísla a sus descendientes, no a sí mismo. */
+.case-c {
+  color: #000;
+  filter: invert(1);
+  mix-blend-mode: difference;
+}
+
+/* ---------- Posiciones del apilado ---------- */
+
+#label-a { top: var(--pad-top); }
+.case-a  { top: calc(var(--pad-top) + var(--label-h)); }
+
+#label-b { top: calc(var(--pad-top) + var(--pitch)); }
+.case-b  { top: calc(var(--pad-top) + var(--pitch) + var(--label-h)); }
+
+#label-c { top: calc(var(--pad-top) + 2 * var(--pitch)); }
+.case-c  { top: calc(var(--pad-top) + 2 * var(--pitch) + var(--label-h)); }
+
+/* ---------- Imagen y espaciadores ----------
+   Hermanos directos, sin propiedades que creen stacking context. */
+
+.gap {
+  height: 70vh;
+}
+
+/* 70% del ancho de los párrafos, centrada dentro de esa columna: los párrafos
+   fijos la cruzan por el medio y sobresalen a los costados. */
+.backdrop {
+  display: block;
+  width: calc(0.7 * var(--measure));
+  height: auto;
+  margin-left: calc(var(--gutter) + 0.15 * var(--measure));
+}
+
+.tail {
+  height: 90vh;
+}
+
+/* ---------- Adaptación al ancho ---------- */
+
+/* Pantalla angosta: la medida se achica, los párrafos crecen en alto y el
+   apilado fijo ya no entra en el viewport. Se deja todo en flujo normal;
+   el blend sigue funcionando, pero la comparación de los tres sobre la
+   imagen es de pantalla ancha. */
+@media (max-width: 700px) {
+  .label,
+  .specimen {
+    position: static;
+  }
+
+  .backdrop {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .shots {
+    flex-direction: column;
+  }
+
+  .gap {
+    height: 24px;
+  }
+
+  .tail {
+    height: 40vh;
+  }
+}
