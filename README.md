@@ -69,8 +69,8 @@ Para que los párrafos se queden fijos mientras la imagen pasa, el `position: st
 está en el párrafo mismo, no en un contenedor. Sticky crea stacking context, pero en
 el mismo elemento que lleva el blend: aísla a sus descendientes, no a sí mismo — igual
 que el `filter` de la propuesta. Verificado en Chrome (Windows): el blend compone contra
-la imagen sin problemas, así que no hizo falta la alternativa de poner la imagen
-`position: fixed` a pantalla completa detrás con `z-index: -1`.
+la imagen sin problemas. En pantallas angostas se usa el esquema inverso, con la imagen
+detrás y los párrafos en flujo (ver más abajo).
 
 Los rótulos rojos van fuera de los párrafos, como hermanos: adentro del de la propuesta
 el `filter: invert(1)` los pondría cian, y adentro del habitual el `difference` los
@@ -95,10 +95,15 @@ alteraría.
   en `:root`, medidas contra el render real. `--pitch` coincide con el ritmo del flujo
   normal para que los bloques no se solapen al fijarse. **Si cambia el tamaño, el
   interlineado o el largo del texto, hay que volver a medir esos tres valores.**
-- Debajo de 700px la medida se achica, los párrafos crecen en alto y el apilado ya no
-  entra en el viewport: ahí se desactiva el sticky y todo queda en flujo normal. El
-  blend sigue funcionando, pero la comparación de los tres sobre la imagen es de
-  pantalla ancha.
+- Debajo de 700px la medida se achica, los párrafos crecen en alto y el apilado de los
+  tres fijos ya no entra en el viewport de un teléfono. Ahí se invierte el esquema: en
+  vez de fijar los párrafos se fija la imagen. `<body>` pasa a `display: flex` (que no
+  crea stacking context) y `order` reubica la imagen entre los screenshots y el primer
+  caso; la imagen toma `position: sticky; top: 0` y `z-index: -1`, y son los párrafos
+  los que le pasan por encima. El blend compone igual: un elemento con `z-index`
+  negativo se pinta antes que el contenido en flujo, así que sigue estando en el
+  backdrop. Los lightbox son `position: fixed`, o sea que no son flex items y no
+  necesitan `order`.
 
 ## Tipografía
 

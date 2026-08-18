@@ -52,7 +52,7 @@ body {
   width: var(--measure);
   margin: 40px var(--gutter) 44px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
   color: #f00;
 }
@@ -242,23 +242,47 @@ body {
 
 /* ---------- Adaptación al ancho ---------- */
 
-/* Pantalla angosta: la medida se achica, los párrafos crecen en alto y el
-   apilado fijo ya no entra en el viewport. Se deja todo en flujo normal;
-   el blend sigue funcionando, pero la comparación de los tres sobre la
-   imagen es de pantalla ancha. */
+/* Pantalla angosta: la medida se achica y los párrafos crecen en alto, así que el
+   apilado de los tres fijos ya no entra en el viewport de un teléfono. En vez de
+   fijar los párrafos se fija la imagen: se la reordena para que caiga entre los
+   screenshots y el primer caso, se le da position: sticky y z-index: -1 para que
+   quede por detrás, y son los párrafos los que le pasan por encima al scrollear.
+   El blend compone igual: un elemento con z-index negativo se pinta antes, así que
+   sigue estando en el backdrop.
+
+   El reordenamiento necesita que <body> sea flex container, que no crea stacking
+   context. Los lightbox son position: fixed, así que no son flex items y no
+   necesitan order. */
 @media (max-width: 700px) {
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .intro         { order: 1; }
+  .section-title { order: 2; }
+  .shots         { order: 3; flex-direction: column; }
+  .backdrop      { order: 4; }
+  #label-a       { order: 5; }
+  .case-a        { order: 6; }
+  #label-b       { order: 7; }
+  .case-b        { order: 8; }
+  #label-c       { order: 9; }
+  .case-c        { order: 10; }
+  .gap           { order: 11; }
+  .tail          { order: 12; }
+
   .label,
   .specimen {
     position: static;
   }
 
   .backdrop {
+    position: sticky;
+    top: 0;
+    z-index: -1;
     width: 100%;
     margin-left: 0;
-  }
-
-  .shots {
-    flex-direction: column;
   }
 
   .gap {
@@ -266,6 +290,6 @@ body {
   }
 
   .tail {
-    height: 40vh;
+    height: 90vh;
   }
 }
